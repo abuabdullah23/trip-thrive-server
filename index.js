@@ -68,6 +68,11 @@ async function run() {
             }).send({ success: true })
         })
 
+        // clear cookie when logout
+        app.post('/logout', async (req, res) => {
+            res.clearCookie('token', { maxAge: 0 }).send({ success: true })
+        })
+
 
 
 
