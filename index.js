@@ -16,6 +16,29 @@ app.use(cors({
 app.use(express.json());
 app.use(cookieParser());
 
+
+// our middlewares
+const logger = async (req, res, next) => {
+    next();
+}
+
+const verifyJWT = async (req, res, next) => {
+    const token = req.cookies?.token;
+    if (!token) {
+        return res.status(401).send({ message: 'Unauthorized' })
+    }
+    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+        // error
+        if (err) {
+            return res.status(401).send({ message: 'Unauthorized' })
+        }
+
+        // decoded
+        req.user = decoded;
+        next();
+    })
+}
+
 // ==================== MongoDB Code ========================
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.ufrxsge.mongodb.net/?retryWrites=true&w=majority`;
 
