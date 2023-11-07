@@ -89,6 +89,27 @@ async function run() {
             res.send(result);
         })
 
+        // update service in db
+        app.put('/update-service/:id', verifyJWT, async (req, res) => {
+            const updateData = req.body;
+            const filter = { _id: new ObjectId(req.params.id) };
+            const options = { upsert: true };
+            const updateDoc = {
+                $set: updateData,
+            }
+            const result = await servicesCollection.updateOne(filter, updateDoc, options);
+            res.send(result);
+        })
+
+        // delete a booking
+        app.delete('/delete-service/:id', verifyJWT, async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) }
+            const result = await servicesCollection.deleteOne(query);
+            res.send(result);
+        })
+
+
         // get all services
         app.get('/get-services', async (req, res) => {
             const query = {}
@@ -116,7 +137,7 @@ async function run() {
 
 
         // get single service by id
-        app.get('/service-details/:id', async (req, res) => {
+        app.get('/service-details/:id', logger, async (req, res) => {
             const id = req.params.id;
             const query = { _id: new ObjectId(id) };
             const result = await servicesCollection.findOne(query);
