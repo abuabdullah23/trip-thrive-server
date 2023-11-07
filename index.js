@@ -2,13 +2,12 @@ require('dotenv').config()
 const express = require('express');
 const jwt = require('jsonwebtoken');
 const cookieParser = require('cookie-parser');
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const cors = require('cors');
 const app = express();
 const port = process.env.PORT || 5000;
 
 // middleware
-
 app.use(cors({
     origin: ['http://localhost:5173'],
     credentials: true,
@@ -19,11 +18,12 @@ app.use(cookieParser());
 
 // our middlewares
 const logger = async (req, res, next) => {
+    console.log(req.method, req.url);
     next();
 }
 
 const verifyJWT = async (req, res, next) => {
-    const token = req.cookies?.token;
+    const token = req?.cookies?.token;
     if (!token) {
         return res.status(401).send({ message: 'Unauthorized' })
     }
@@ -57,6 +57,10 @@ async function run() {
         // await client.connect();
 
         // ================ create db collection ======================
+        const servicesCollection = client.db('trip-thrive').collection('services')
+        const bookingCollection = client.db('trip-thrive').collection('booking')
+
+
 
         // auth api
         app.post('/jwt', async (req, res) => {
@@ -64,7 +68,8 @@ async function run() {
             const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '7d' })
             res.cookie('token', token, {
                 httpOnly: true,
-                secure: false,
+                secure: true,
+                sameSite: 'none'
             }).send({ success: true })
         })
 
@@ -76,17 +81,42 @@ async function run() {
 
 
 
+        // save service in MongoDB
+        app.post('/add-service', logger, verifyJWT, async (req, res) => {
+            const service = req.body;
+            // console.log(service);
+            const result = await servicesCollection.insertOne(service);
+            res.send(result);
+        })
+
+        // get all services
+        app.get('/get-services', async (req, res) => {
+            const query = {}
+            const options = {
+                sort: { _id: -1 }
+            }
+            const result = await servicesCollection.find(query, options).toArray();
+            res.send(result);
+        })
+
+        // get single service by id
+        app.get('/service-details/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) };
+            const result = await servicesCollection.findOne(query);
+            res.send(result);
+        })
 
 
 
 
 
-
-
-
-
-
-
+        // save service booking in MongoDB
+        app.post('/service-booking', logger, verifyJWT, async (req, res) => {
+            const service = req.body;
+            const result = await bookingCollection.insertOne(service);
+            res.send(result);
+        })
 
 
 
