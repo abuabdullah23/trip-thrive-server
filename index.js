@@ -99,6 +99,22 @@ async function run() {
             res.send(result);
         })
 
+        // get services for provider
+        app.get('/get-provider-services', logger, verifyJWT, async (req, res) => {
+            // console.log('token owner:', req.user.email)
+            // console.log('user:', req.query.providerEmail)
+            if (req.user.email !== req.query.providerEmail) {
+                return response
+                    .status(403)
+                    .send({ error: true, message: 'Forbidden Access' })
+            }
+            const email = req.query.providerEmail;
+            const query = { providerEmail: email };
+            const result = await servicesCollection.find(query).toArray();
+            res.send(result);
+        })
+
+
         // get single service by id
         app.get('/service-details/:id', async (req, res) => {
             const id = req.params.id;
