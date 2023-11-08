@@ -195,7 +195,19 @@ async function run() {
         })
 
 
-
+        // update pending service status
+        app.patch('/update-service-status/:id', logger, verifyJWT, async (req, res) => {
+            const id = req.params.id;
+            const updateStatus = req.body.updateStatus;
+            const query = { _id: new ObjectId(id) };
+            const updateDoc = {
+                $set: {
+                    status: updateStatus,
+                },
+            }
+            const update = await bookingCollection.updateOne(query, updateDoc);
+            res.send(update)
+        })
 
 
 
