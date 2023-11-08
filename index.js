@@ -101,7 +101,7 @@ async function run() {
             res.send(result);
         })
 
-        // delete a booking
+        // delete a service by id
         app.delete('/delete-service/:id', verifyJWT, async (req, res) => {
             const id = req.params.id;
             const query = { _id: new ObjectId(id) }
@@ -125,7 +125,7 @@ async function run() {
             // console.log('token owner:', req.user.email)
             // console.log('user:', req.query.providerEmail)
             if (req.user.email !== req.query.providerEmail) {
-                return response
+                return res
                     .status(403)
                     .send({ error: true, message: 'Forbidden Access' })
             }
@@ -155,6 +155,44 @@ async function run() {
             res.send(result);
         })
 
+        // get user bookings
+        app.get('/get-my-booking', logger, verifyJWT, async (req, res) => {
+            // console.log('token owner:', req.user.email)
+            // console.log('user:', req.query.userEmail)
+            if (req.user.email !== req.query.userEmail) {
+                return res
+                    .status(403)
+                    .send({ error: true, message: 'Forbidden Access' })
+            }
+            const email = req.query.userEmail;
+            const query = { userEmail: email };
+            const result = await bookingCollection.find(query).toArray();
+            res.send(result);
+        })
+
+
+        // get user provider pending booking which booked other user
+        app.get('/get-pending-booking', logger, verifyJWT, async (req, res) => {
+            // console.log('token owner:', req.user.email)
+            // console.log('user:', req.query.providerEmail)
+            if (req.user.email !== req.query.providerEmail) {
+                return res
+                    .status(403)
+                    .send({ error: true, message: 'Forbidden Access' })
+            }
+            const email = req.query.providerEmail;
+            const query = { providerEmail: email };
+            const result = await bookingCollection.find(query).toArray();
+            res.send(result);
+        })
+
+        // delete a booking by id
+        app.delete('/delete-my-booking/:id', logger, verifyJWT, async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) }
+            const result = await bookingCollection.deleteOne(query);
+            res.send(result);
+        })
 
 
 
